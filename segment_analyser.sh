@@ -22,6 +22,11 @@ given_external_id=0
 given_host_address=0
 given_host_port=0
 
+adaptation_flag=0
+video_timings_source=10000000 #(20000000 = 2s)
+audio_timings_source=24000 #(20000000 = 2s)
+
+
 
 # Usage
 function usage {
@@ -103,11 +108,20 @@ function extract_segment_information {
 	else
 		output=$output_file
 	fi
+	echo dollar 1 = $1 dollar 2 = $2
 	while read line
 	do
   		if [[ $line =~ "<SegmentTemplate " ]]
   		then
-    		echo Adaptation Set = $(echo $line | rev | cut -d\( -f1 | rev | cut -d= -f1)
+  			if [[ adaptation_counter == 0 ]]
+  			then
+    			echo Adaptation Set = $(echo $line | rev | cut -d\( -f1 | rev | cut -d= -f1)
+    			adaptation_flag=1
+    		else
+    			echo
+    			echo Adaptation Set = $(echo $line | rev | cut -d\( -f1 | rev | cut -d= -f1)
+    			adaptation_flag=1
+    		fi
     		segment_total=0
     		segment_count=1
     		if [[ $line =~ "video" ]]
@@ -123,24 +137,41 @@ function extract_segment_information {
  		fi
   		if [[ $line =~ "<S d=" ]]
   		then
-    		if [[ $line =~ "r=" ]]
+  			if [[ $line =~ "r=" ]]
     		then
-      			segment=$(echo $line | cut -d\" -f2)
+  				segment=$(echo $line | cut -d\" -f2)
       			repetitions=$(echo $line | cut -d\" -f4)
-#     			echo Manifest Line = Segment = $segment, Repetitions = $repetitions
-      			for i in $( seq 1 $repetitions )
+#      			echo Manifest Line = Segment = $segment, Repetitions = $repetitions Segment Total = $segment_total
+      			for i in $( seq 1 $(($repetitions+1)) )
       			do
-        			segment_total=$(($segment+$segment_total))
-        			echo Segment_$segment_count = $segment_total $content_type
+      				segment_total=$(($segment+$segment_total))
+      				if [[ $content_type != "audio" ]]
+      				then
+        				run_time=$(( $segment_total/video_timings_source ))
+        				length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
+        			else
+        				run_time=$(( $segment_total/audio_timings_source ))
+        				length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
+        			fi
+        			echo Segment_${segment_count} = $segment_total $run_time $length $content_type
         			segment_count=$(($segment_count+1))
       			done
-    		fi
-    		segment=$(echo $line | cut -d\" -f2)
-    		segment_total=$(($segment+$segment_total))
-#    		echo Segment_$segment_count = $segment_total
-#    		echo Manifest Line = Segment_$segment_count = $(echo $line | cut -d\" -f2)
-    		segment_count=$((segment_count+1))
+  			else
+  				segment=$(echo $line | cut -d\" -f2)
+    			segment_total=$(($segment+$segment_total))
+    			if [[ $content_type != "audio" ]]
+    			then
+    				run_time=$(( $segment_total/video_timings_source ))
+        			length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
+        		else
+        			run_time=$(( $segment_total/audio_timings_source ))
+        			length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
+        		fi
+    			echo Segment_${segment_count} = $segment_total $run_time $length $content_type
+    			segment_count=$(($segment_count+1))
+  			fi
   		fi
+#	done < <(cat $1)
 	done < <(cat $1) >$output
 }
 
@@ -154,6 +185,7 @@ function process_local_file {
 function download_manifest {
 	echo $(date "+%Y-%m-%d %H:%M:%S") - Fetching manifest file
 	manifest="http://${host}:${port}/sdash/${external_id}/index.mpd/Manifest?device=DASH"
+#	echo curl -s -o ${temp} ${manifest}
 	curl -s -o ${temp} ${manifest}
 	if [[ $? != 0 ]]
 	then
