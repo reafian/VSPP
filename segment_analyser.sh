@@ -108,7 +108,7 @@ function extract_segment_information {
 	else
 		output=$output_file
 	fi
-	echo dollar 1 = $1 dollar 2 = $2
+
 	while read line
 	do
   		if [[ $line =~ "<SegmentTemplate " ]]
@@ -137,6 +137,9 @@ function extract_segment_information {
  		fi
   		if [[ $line =~ "<S d=" ]]
   		then
+  			echo ""
+  			echo "*** $(echo $line | sed -e"s/<S/Segments/" | sed -e"s/>//") ***"
+  			echo ""
   			if [[ $line =~ "r=" ]]
     		then
   				segment=$(echo $line | cut -d\" -f2)
@@ -153,7 +156,7 @@ function extract_segment_information {
         				run_time=$(( $segment_total/audio_timings_source ))
         				length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
         			fi
-        			echo Segment_${segment_count} = $segment_total $run_time $length $content_type
+        			echo "	Segment_${segment_count} = $segment_total $run_time $length $content_type"
         			segment_count=$(($segment_count+1))
       			done
   			else
@@ -167,7 +170,7 @@ function extract_segment_information {
         			run_time=$(( $segment_total/audio_timings_source ))
         			length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
         		fi
-    			echo Segment_${segment_count} = $segment_total $run_time $length $content_type
+    			echo "	Segment_${segment_count} = $segment_total $run_time $length $content_type"
     			segment_count=$(($segment_count+1))
   			fi
   		fi
