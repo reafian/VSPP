@@ -11,6 +11,7 @@ Scripts and tools related to VSPP.
 This is the stuff that's in this repo.
 
 1. segment_analyser.sh - A small script to pick out all the segments from a manifest file.
+2. extract.py - small crappy python to extract frame details from a file.
 
 ## segment_analyser.sh
 
@@ -30,6 +31,21 @@ Adaptation Set = audio_482_eng
 Segment_1 = 48128 2 00h:00m:02s audio
 Segment_2 = 96256 4 00h:00m:04s audio
 Segment_3 = 144384 6 00h:00m:06s audio
+
+## extract.py
+
+Use ffprobe to generate a frame listing of an mpeg or ts file:
+
+ffprobe -select_streams v -show_frames -show_entries frame=pkt_pts,pkt_duration,pkt_pos,pict_type,pkt_size -v quiet -print_format xml <file>
+
+Use extract.py on the output file to generate something like:
+
+88201 IBBPBPBBPBBPBBPPPPPPBPBBPBBPBBPBPBBPBBPBBPBBPBBPBP
+268201 IBBPBBPBBPBBPBBPBBPBBPPBBPPPBPBPPBBPBBPBBPBBPBBPBP
+448201 IBBPBBPBBPBBPBBPBPBPBPPBBPBBPBBPBBPBBPBBPBBPBBPBBP
+628201 IBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPP
+
+Which shows the "pkt_pts" value for the iframe and then the frames that follow.
 
 
 ---
