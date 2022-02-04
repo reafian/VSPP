@@ -32,6 +32,8 @@ Segment_1 = 48128 2 00h:00m:02s audio
 Segment_2 = 96256 4 00h:00m:04s audio
 Segment_3 = 144384 6 00h:00m:06s audio
 
+If the file has already been downloaded from VSPP use SublimeText 3 and format the file using IndentXML to make it nice and pretty. The script won't choke then.
+
 ## extract.py
 
 Use ffprobe to generate a frame listing of an mpeg or ts file:
