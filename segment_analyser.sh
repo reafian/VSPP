@@ -30,7 +30,7 @@ audio_timings_source=24000 #(20000000 = 2s)
 
 # Usage
 function usage {
-	echo "Usage: $0 [ -f MANIFEST_FILE ] | [ -i EXTERNAL_ID ] [ -a HOST_ADDRESS ] [ -p PORT ] [ -o OUTPUT_FILE" 1>&2 
+	echo "Usage: $0 [ -f MANIFEST_FILE ] | [ -i EXTERNAL_ID ] [ -a HOST_ADDRESS ] [ -p PORT ] [ -o OUTPUT_FILE" ] 1>&2 
 }
 
 #Quick check to see if input file exists
