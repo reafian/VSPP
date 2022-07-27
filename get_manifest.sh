@@ -49,4 +49,4 @@ echo Manifest
 echo ========
 echo
 #
-http --body  --follow "http://multiscreen-dash.vod.mspp.dtv.virginmedia.com/sdash/${backoffice_id}/index.mpd/Manifest?providerID=${provider_id}&assetID=${resource_id}&macid=${mac_id}&device=${device}"
+http --body  --follow "http://${ms}/sdash/${backoffice_id}/index.mpd/Manifest?providerID=${provider_id}&assetID=${resource_id}&macid=${mac_id}&device=${device}"
