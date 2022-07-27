@@ -49,5 +49,19 @@ Use extract.py on the output file to generate something like:
 
 Which shows the "pkt_pts" value for the iframe and then the frames that follow.
 
+*** NOTE
 
+segment_analyser doesn't work with the new format of manifest file. It's super annoying.
+
+Old Version:
+
+	<SegmentTimeline>
+		<S d="20000000" r="561"/>
+		<S d="19200000"/>
+
+New Version:
+
+	<SegmentTimeline>
+		<S t="0" d="20000000" r="286" />
+		<S t="5740000000" d="10000000" r="1" />
 ---
