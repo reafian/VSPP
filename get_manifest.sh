@@ -39,7 +39,9 @@ echo "Remeber to use ssh ppfe (or whatever) to make the connection to Traxis"
 echo "Gotta love VPN changes that break things..."
 
 details=$(curl -s "http://${server}:8443/traxis/web/Title/crid:~~2F~~2Fschange.com~~2F${provider_id}~~2F${resource_id}/Contents/Props/Aliases" | tr -d '\r')
+name=$(curl -s "http://${server}:8443/traxis/web/Title/crid:~~2F~~2Fschange.com~~2F${provider_id}~~2F${resource_id}/Props/Name" | grep Name | cut -d\> -f2 | cut -d\< -f1)
 backoffice_id=$(echo $details | grep VodBackOfficeId | cut -d\> -f6- | cut -d\< -f1)
+echo Fetching $name
 #
 #http --body  --follow "http://${ms}/sdash/${backoffice_id}/index.mpd/Manifest?providerID=${provider_id}&assetID=${resource_id}&macid=${mac_id}&device=${device}" --output manifest.xml --download
-#curl -s -o manifest.xml -L "http://${ms}/sdash/${backoffice_id}/index.mpd/Manifest?providerID=${provider_id}&assetID=${resource_id}&macid=${mac_id}&device=${device}"
+curl -s -o "${name}.xml" -L "http://${ms}/sdash/${backoffice_id}/index.mpd/Manifest?providerID=${provider_id}&assetID=${resource_id}&macid=${mac_id}&device=${device}"
