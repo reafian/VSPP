@@ -24,7 +24,12 @@ given_host_port=0
 
 adaptation_flag=0
 video_timings_source=10000000 #(20000000 = 2s)
-audio_timings_source=24000 #(20000000 = 2s)
+# Not sure about these audio timings, they don't seem to make a whole lot of sense
+# and I'm half-wondering if they need to be calculated on-the-fly. If they do that'll get messy.
+#old_audio_timings_source=24000 #(20000000 = 2s)
+#new_audio_timings_source=47996 #(20000000 = 2s)
+#audio_timings_source=96768 #(20000000 = 2s)
+
 
 
 
@@ -100,8 +105,97 @@ function check_output_file {
 }
 
 # Extract data from XML. Should probably try to make this more functional
-function extract_segment_information {
-	echo $(date "+%Y-%m-%d %H:%M:%S") - Creating segment extract file
+function new_extract_segment_information {
+	audio_timings_source=$3
+
+	echo "Creating segment extract file"
+	if [[ $2 ]]
+	then
+		output=$2
+	else
+		output=$output_file
+	fi
+
+	while read line
+	do
+  		if [[ $line =~ "<SegmentTemplate " ]]
+  		then
+  			if [[ adaptation_counter == 0 ]]
+  			then
+    			echo Adaptation Set = $(echo $line | rev | cut -d\( -f1 | rev | cut -d= -f1)
+    			adaptation_flag=1
+    		else
+    			echo
+    			echo Adaptation Set = $(echo $line | rev | cut -d\( -f1 | rev | cut -d= -f1)
+    			adaptation_flag=1
+    		fi
+    		segment_total=0
+    		segment_count=1
+    		if [[ $line =~ "video" ]]
+    		then
+    			content_type="video"
+    		elif [[ $line =~ "trickmode" ]]
+    		then
+    			content_type="trickmode"
+    		elif [[ $line =~ "audio" ]]
+    		then
+    			content_type="audio"
+    		fi
+ 		fi
+  		if [[ $line =~ "<S " ]]
+  		then
+#  			echo ""
+#  			echo "*** $(echo $line | sed -e"s/<S/Segments/" | sed -e"s/\/>//") ***"
+#  			echo ""
+
+  			if [[ $line =~ "r=" ]]
+    		then
+    			segment=$(echo $line | cut -d\" -f4)
+      			repetitions=$(echo $line | cut -d\" -f6)
+#  				echo line contains r= $segment $repetitions $content_type
+
+  				for i in $( seq 1 $(($repetitions+1)) )
+      			do
+      				segment_total=$(($segment+$segment_total))
+      				if [[ $content_type != "audio" ]]
+      				then
+        				run_time=$(( $segment_total/$video_timings_source ))
+        				length=$(printf '%02dh:%02dm:%02ds\n' $(($run_time/3600)) $(($run_time%3600/60)) $(($run_time%60)))
+        			else
+        				run_time=$(( $segment_total/$audio_timings_source ))
+        				length=$(printf '%02dh:%02dm:%02ds\n' $(($run_time/3600)) $(($run_time%3600/60)) $(($run_time%60)))
+        			fi
+        			echo "	Segment_${segment_count} = $segment_total $segment $run_time $length $content_type"
+        			segment_count=$(($segment_count+1))
+      			done
+
+  			else
+  				segment=$(echo $line | cut -d\" -f4)
+    			segment_total=$(($segment+$segment_total))
+#  				echo no r= $segment $segment_total $content_type
+    			if [[ $content_type != "audio" ]]
+    			then
+    				run_time=$(( $segment_total/$video_timings_source ))
+        			length=$(printf '%02dh:%02dm:%02ds\n' $(($run_time/3600)) $(($run_time%3600/60)) $(($run_time%60)))
+        		else
+        			run_time=$(( $segment_total/$audio_timings_source ))
+        			length=$(printf '%02dh:%02dm:%02ds\n' $(($run_time/3600)) $(($run_time%3600/60)) $(($run_time%60)))
+        		fi
+    			echo "	Segment_${segment_count} = $segment_total $segment $run_time $length $content_type"
+    			segment_count=$(($segment_count+1))
+
+  			fi
+
+  		fi
+#	done < <(cat $1)
+	done < <(cat $1) >$output
+}
+
+# Extract data from XML. Should probably try to make this more functional
+function old_extract_segment_information {
+	audio_timings_source=$3
+
+	echo "Creating segment extract file"
 	if [[ $2 ]]
 	then
 		output=$2
@@ -137,9 +231,9 @@ function extract_segment_information {
  		fi
   		if [[ $line =~ "<S d=" ]]
   		then
-  			echo ""
-  			echo "*** $(echo $line | sed -e"s/<S/Segments/" | sed -e"s/>//") ***"
-  			echo ""
+#  			echo ""
+#  			echo "*** $(echo $line | sed -e"s/<S/Segments/" | sed -e"s/>//") ***"
+#  			echo ""
   			if [[ $line =~ "r=" ]]
     		then
   				segment=$(echo $line | cut -d\" -f2)
@@ -150,10 +244,10 @@ function extract_segment_information {
       				segment_total=$(($segment+$segment_total))
       				if [[ $content_type != "audio" ]]
       				then
-        				run_time=$(( $segment_total/video_timings_source ))
+        				run_time=$(( $segment_total/$video_timings_source ))
         				length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
         			else
-        				run_time=$(( $segment_total/audio_timings_source ))
+        				run_time=$(( $segment_total/$audio_timings_source ))
         				length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
         			fi
         			echo "	Segment_${segment_count} = $segment_total $segment $run_time $length $content_type"
@@ -164,10 +258,10 @@ function extract_segment_information {
     			segment_total=$(($segment+$segment_total))
     			if [[ $content_type != "audio" ]]
     			then
-    				run_time=$(( $segment_total/video_timings_source ))
+    				run_time=$(( $segment_total/$video_timings_source ))
         			length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
         		else
-        			run_time=$(( $segment_total/audio_timings_source ))
+        			run_time=$(( $segment_total/$audio_timings_source ))
         			length=$(printf '%02dh:%02dm:%02ds\n' $((run_time/3600)) $((run_time%3600/60)) $((run_time%60)))
         		fi
     			echo "	Segment_${segment_count} = $segment_total $segment $run_time $length $content_type"
@@ -181,19 +275,30 @@ function extract_segment_information {
 # Call the extract function with input and output file names
 function process_local_file {
 	echo "Processing $file, using an output file of $output_file"
-	extract_segment_information $file $output_file
+	echo "Extracting audio timescale"
+	timescale=$(grep SegmentTemplate $file | grep audio | sed -e"s/timescale=\"/@/" | cut -d@ -f2 | cut -d\" -f1)
+	echo "Using an audio timescale of $timescale"
+	grep -q " t=\"" $file 2>&1 >/dev/null
+	if [[ $? == 0 ]]
+	then
+		echo "Using new_extract_segment_information"
+		new_extract_segment_information $file $output_file $timescale
+	else
+		echo "Using old_extract_segment_information"
+		old_extract_segment_information $file $output_file $timescale
+	fi
 }
 
 # Download the manifest using given details
 function download_manifest {
-	echo $(date "+%Y-%m-%d %H:%M:%S") - Fetching manifest file
+	echo "Fetching manifest file"
 	manifest="http://${host}:${port}/sdash/${external_id}/index.mpd/Manifest?device=DASH"
 #	echo curl -s -o ${temp} ${manifest}
 	curl -s -o ${temp} ${manifest}
 	if [[ $? != 0 ]]
 	then
-  		echo $(date "+%Y-%m-%d %H:%M:%S") - cURL failed to retrieve content.
-  		echo $(date "+%Y-%m-%d %H:%M:%S") - Exiting
+  		echo "cURL failed to retrieve content."
+  		echo "Exiting"
   		exit 1
 	fi
 }
@@ -230,7 +335,7 @@ function build_manifest_call {
 
 # Transform the downloaded XML into something readable
 function create_manifest_xml {
-	echo "Creating XML file"
+	echo "$(date "+%Y-%m-%d %H:%M:%S") - Creating XML file"
 	xmllint -format -recover $temp > $file
 	rm $temp
 }
@@ -298,6 +403,6 @@ fi
 # Finally, if no arguments are given assume we're testing and just use the default options
 if [ -z "$1" ]
 then
-	echo "No arguments given, using $file for manifest file and $output_file for output file"
+	echo "$(date "+%Y-%m-%d %H:%M:%S") - No arguments given, using $file for manifest file and $output_file for output file"
 	process_local_file
 fi
