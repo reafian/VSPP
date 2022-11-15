@@ -38,7 +38,7 @@ If the file has already been downloaded from VSPP use SublimeText 3 and format t
 
 Use ffprobe to generate a frame listing of an mpeg or ts file:
 
-ffprobe -select_streams v -show_frames -show_entries frame=pkt_pts,pkt_duration,pkt_pos,pict_type,pkt_size -v quiet -print_format xml <file>
+ffprobe -select_streams v -show_frames -show_entries frame=pkt_pts,pkt_duration,pkt_pos,pict_type,pkt_size -v quiet -print_format json <file>
 
 Use extract.py on the output file to generate something like:
 

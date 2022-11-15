@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/python3
 import json
 import sys
 import os
@@ -16,8 +16,8 @@ frames = []
 for properties in filedata['frames']:
 #	print(properties)
 	for key, value in properties.items():
-		if key == "pkt_pts":
-			pktpts = value
+#		if key == "pktpts":
+#			pkt_pts = value
 		if key == "pict_type":
 			picttype = value.strip()
 
@@ -34,8 +34,7 @@ for properties in filedata['frames']:
 						output.write(str(txt)+"\n")
 
 				frames = []
-				frames.append(pktpts)
+#				frames.append(pktpts)
 				frames.append(picttype)
 			else:
 				frames.append(picttype)
-
