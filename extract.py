@@ -16,8 +16,8 @@ frames = []
 for properties in filedata['frames']:
 #	print(properties)
 	for key, value in properties.items():
-#		if key == "pktpts":
-#			pkt_pts = value
+		if key == "pts":
+			pts = value
 		if key == "pict_type":
 			picttype = value.strip()
 
@@ -25,16 +25,18 @@ for properties in filedata['frames']:
 				picttype = " I"
 
 				txt = ''
+				count = 0
 				for i in frames:
 					txt += str(i)
+					count += 1
 
 				if len(txt) > 1:
-					print(txt)
+					print(str(count-1) + " " + txt)
 					with open(destination, 'a') as output:
-						output.write(str(txt)+"\n")
+						output.write(str(count-1) + " " + str(txt)+"\n")
 
 				frames = []
-#				frames.append(pktpts)
+				frames.append(pts)
 				frames.append(picttype)
 			else:
 				frames.append(picttype)

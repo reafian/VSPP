@@ -38,16 +38,19 @@ If the file has already been downloaded from VSPP use SublimeText 3 and format t
 
 Use ffprobe to generate a frame listing of an mpeg or ts file:
 
-ffprobe -select_streams v -show_frames -show_entries frame=pkt_pts,pkt_duration,pkt_pos,pict_type,pkt_size -v quiet -print_format json <file>
+ffprobe -select_streams v -show_frames -show_entries frame=pts,pkt_duration,pkt_pos,pict_type,pkt_size -v quiet -print_format json <file>
 
 Use extract.py on the output file to generate something like:
 
-88201 IBBPBPBBPBBPBBPPPPPPBPBBPBBPBBPBPBBPBBPBBPBBPBBPBP
-268201 IBBPBBPBBPBBPBBPBBPBBPPBBPPPBPBPPBBPBBPBBPBBPBBPBP
-448201 IBBPBBPBBPBBPBBPBPBPBPPBBPBBPBBPBBPBBPBBPBBPBBPBBP
-628201 IBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPBBPP
+15 8599680 IBBPBBPBBPBBPBB
+15 8653680 IBBPBBPBBPBBPBB
+15 8707680 IBBPBBPBBPBBPBB
+16 8761680 IBBPBBPBBPBBPBBP
+17 8819280 IBBPBBPBBPBBPBPBB
+15 8880480 IBBPBBPBBPBBPBB
+26 8934480 IBBPBBPBBPBBPBBPBBPBBPBBPP
 
-Which shows the "pkt_pts" value for the iframe and then the frames that follow.
+Which shows the GOP length, the pts value for the I-frame and the frame sequence until the next I-frame.
 
 *** NOTE
 
