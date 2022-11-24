@@ -3,8 +3,11 @@ import json
 import sys
 import os
 
+if len(sys.argv) < 2:
+	sys.exit("A file needs to be given for this to work.")
+
 source = sys.argv[1]
-destination = str(source)+"_output.txt"
+destination = str(source).split(".")[0]+"_output.txt"
 
 if os.path.exists(destination):
 	os.remove(destination)
@@ -18,6 +21,8 @@ for properties in filedata['frames']:
 	for key, value in properties.items():
 		if key == "pts":
 			pts = value
+		else:
+			pts = None
 		if key == "pict_type":
 			picttype = value.strip()
 
@@ -36,7 +41,8 @@ for properties in filedata['frames']:
 						output.write(str(count-1) + " " + str(txt)+"\n")
 
 				frames = []
-				frames.append(pts)
+				if pts != None:
+					frames.append(pts)
 				frames.append(picttype)
 			else:
 				frames.append(picttype)
