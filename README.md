@@ -34,13 +34,33 @@ Segment_3 = 144384 6 00h:00m:06s audio
 
 If the file has already been downloaded from VSPP use SublimeText 3 and format the file using IndentXML to make it nice and pretty. The script won't choke then.
 
-## extract.py
+## GOPInfo.py (formerly extract.py)
 
-Use ffprobe to generate a frame listing of an mpeg or ts file:
+GOPInfo.py <file> will use ffprobe (if installed) to generate a file that shows GOP lengths and provides the pts value for each I-Frame. The ffprobe command used is:
 
 ffprobe -select_streams v -show_frames -show_entries frame=pts,pkt_duration,pkt_pos,pict_type,pkt_size -v quiet -print_format json <file>
 
-Use extract.py on the output file to generate something like:
+this will first generate a json file with the usual ffprobe format:
+
+{
+    "frames": [
+        {
+            "pts": 172080,
+            "pkt_duration": 1800,
+            "pkt_pos": "23124",
+            "pkt_size": "89017",
+            "pict_type": "I",
+            "side_data_list": [
+                {
+                    "side_data_type": "Active format description",
+                    "active_format": 10
+                }
+            ]
+        },
+
+This is mostly for reference as the actual work is done in memory but, if a file is too big it might be necessary to read the file rather than do it all in memory.
+
+From the results of ffprobe a text file will be generated (and will be displayed to screen too) with the following format:
 
 15 8599680 IBBPBBPBBPBBPBB
 15 8653680 IBBPBBPBBPBBPBB
@@ -50,7 +70,7 @@ Use extract.py on the output file to generate something like:
 15 8880480 IBBPBBPBBPBBPBB
 26 8934480 IBBPBBPBBPBBPBBPBBPBBPBBPP
 
-Which shows the GOP length, the pts value for the I-frame and the frame sequence until the next I-frame.
+This shows the GOP length, the pts value for the I-frame and the frame sequence until the next I-frame.
 
 *** NOTE
 
