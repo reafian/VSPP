@@ -44,6 +44,7 @@ def run_ffprobe(ffprobe, file):
 	return(result)
 
 def extract_frames(probe_result):
+	print("Extracting GOP structure of file.")
 	filedata = json.loads(probe_result)
 	# Empty frames array
 	frames = []
