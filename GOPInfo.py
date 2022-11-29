@@ -3,6 +3,7 @@ import subprocess
 import argparse
 import shutil
 import json
+import time
 
 # Use argparses to generate useful help messages
 parser = argparse.ArgumentParser()
@@ -36,12 +37,19 @@ def is_program_installed(ffprobe):
 # I'm not sure if we really need to write the file out (will size play an issue?)
 # but I'm doing it anyway so I have a reference for later.
 def run_ffprobe(ffprobe, file):
+#	print(ffprobe)
+#	print(file)
+#	print(json_file)
 	with open(json_file, "w") as jf:
 		result = subprocess.Popen([ffprobe, "-select_streams", "v", "-show_frames", "-show_entries", 
-			"frame=pts,pkt_duration,pkt_pos,pict_type,pkt_size", "-v", "quiet", "-print_format", 
+			"frame=pts,pkt_duration,pkt_pos,pict_type,pkt_size,pkt_dts_time", "-v", "quiet", "-print_format", 
 			"json", file], universal_newlines=True, stdout=subprocess.PIPE).communicate()[0]
 		jf.write(str(result))
 	return(result)
+
+def convert_time(pkt_dts_time):
+	return(time.strftime("%H:%M:%S", time.gmtime(float(pkt_dts_time))))
+#	return(sec)
 
 def extract_frames(probe_result):
 	print("Extracting GOP structure of file.")
@@ -55,6 +63,9 @@ def extract_frames(probe_result):
 			# Find the pts values for each frame
 			if key == "pts":
 				pts = value
+
+			if key == "pkt_dts_time":
+				pkt_dts_time = " " + convert_time(value)
 
 			# Find the type of each frame
 			if key == "pict_type":
@@ -83,10 +94,10 @@ def extract_frames(probe_result):
 					# Zero the array, add the pts and the I-Frame
 					frames = []
 					frames.append(pts)
+					frames.append(pkt_dts_time)
 					frames.append(pict_type)
 				else:
 					# If the frame is not an I-Frame then tag it onto the end
 					frames.append(pict_type)
-
 
 main()
